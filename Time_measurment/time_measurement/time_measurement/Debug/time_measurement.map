@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Mon Aug 06 19:38:20 2018
+AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Tue Aug 07 19:43:03 2018
 
 
 EQU  SIGNATURE_000 0000001e
@@ -510,16 +510,27 @@ EQU  INT_VECTORS_SIZE 00000013
 DEF  temp1        r16
 DEF  temp2        r17
 DEF  temp3        r18
-CSEG lcd_init     00000038
-CSEG lcd_clear    0000004f
-CSEG lcd_data     00000011
-CSEG loop         00000010
-CSEG lcd_enable   00000027
-CSEG delay50us    0000002d
-CSEG lcd_command  0000001d
-CSEG delay50us_   0000002e
-CSEG delay5ms     00000031
-CSEG WGLOOP0      00000032
-CSEG WGLOOP1      00000033
-CSEG powerupwait  00000039
-CSEG lcd_home     00000053
+DEF  flag         r19
+DEF  mil_sec      r20
+DEF  second       r21
+DEF  minute       r22
+CSEG main         00000007
+CSEG timer1_compare 0000002a
+CSEG lcd_init     0000006d
+CSEG lcd_clear    00000084
+CSEG loop         0000001b
+CSEG lcd_number   00000045
+CSEG lcd_data     00000039
+CSEG end_isr      00000036
+CSEG ausgabe      00000035
+CSEG lcd_enable   0000005c
+CSEG delay50us    00000062
+CSEG lcd_number_10 00000047
+CSEG lcd_number_1 0000004b
+CSEG lcd_command  00000052
+CSEG delay50us_   00000063
+CSEG delay5ms     00000066
+CSEG WGLOOP0      00000067
+CSEG WGLOOP1      00000068
+CSEG powerupwait  0000006e
+CSEG lcd_home     00000088

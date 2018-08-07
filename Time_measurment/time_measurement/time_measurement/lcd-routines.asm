@@ -26,6 +26,30 @@ lcd_data:
 	rcall delay50us						; Delay-Routine aufrufen
 	ret									; zurück zum Hauptprogramm
 
+; Eine Zahl aus dem Register temp1 ausgeben
+lcd_number:
+	push temp2							; register sichern,
+										; wird für Zwsichenergebnisse gebraucht
+	ldi temp2, '0'
+lcd_number_10:
+	subi temp1, 10						; abzählen wieviele Zehner in
+	brcs lcd_number_1					; der Zahl enthalten sind
+	inc temp2
+	rjmp lcd_number_10
+lcd_number_1:
+	rcall lcd_data						; die Zehnerstelle ausgeben
+	subi temp1, -10						; 10 wieder dazuzählen, da die
+										; vorhergehende Schleife 10 zuviel
+										; abgezogen hat
+										; das Subtrahieren von -10
+										; = Addition von +10 ist ein Trick
+										; da kein addi Befehl existiert
+	ldi temp2, '0'						; die übrig gebliebenen Einer
+	add temp1, temp2					; noch ausgeben
+	rcall lcd_data
+	pop temp2							; Register wieder herstellen
+	ret
+
 ; sendet einen Befehl an das LCD
 lcd_command:							; wie lcd_data, nur RS=0
 	mov temp2, temp1
