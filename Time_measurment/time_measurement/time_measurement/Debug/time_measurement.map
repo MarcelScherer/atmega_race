@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Tue Aug 07 19:43:03 2018
+AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Wed Aug 08 19:32:28 2018
 
 
 EQU  SIGNATURE_000 0000001e
@@ -510,27 +510,37 @@ EQU  INT_VECTORS_SIZE 00000013
 DEF  temp1        r16
 DEF  temp2        r17
 DEF  temp3        r18
-DEF  flag         r19
-DEF  mil_sec      r20
-DEF  second       r21
-DEF  minute       r22
-CSEG main         00000007
-CSEG timer1_compare 0000002a
-CSEG lcd_init     0000006d
-CSEG lcd_clear    00000084
-CSEG loop         0000001b
-CSEG lcd_number   00000045
-CSEG lcd_data     00000039
-CSEG end_isr      00000036
-CSEG ausgabe      00000035
-CSEG lcd_enable   0000005c
-CSEG delay50us    00000062
-CSEG lcd_number_10 00000047
-CSEG lcd_number_1 0000004b
-CSEG lcd_command  00000052
-CSEG delay50us_   00000063
-CSEG delay5ms     00000066
-CSEG WGLOOP0      00000067
-CSEG WGLOOP1      00000068
-CSEG powerupwait  0000006e
-CSEG lcd_home     00000088
+DEF  Flag         r19
+DEF  SubCount     r21
+DEF  mil_sec      r22
+DEF  second       r23
+DEF  minute       r24
+CSEG main         0000007e
+CSEG timer1_compare 000000a5
+EQU  LCD_PORT     00000012
+EQU  LCD_DDR      00000011
+EQU  PIN_RS       00000004
+EQU  PIN_E        00000005
+EQU  XTAL         003d0900
+CSEG lcd_number   00000007
+CSEG lcd_number_10 00000009
+CSEG lcd_number_1 0000000d
+CSEG lcd_data     00000017
+CSEG lcd_enable   0000003d
+CSEG delay50us    00000043
+CSEG lcd_command  0000002b
+CSEG delay50us_   00000044
+CSEG delay5ms     00000047
+CSEG WGLOOP0      00000048
+CSEG WGLOOP1      00000049
+CSEG lcd_init     0000004e
+CSEG powerupwait  00000053
+CSEG lcd_clear    0000006a
+CSEG lcd_flash_string 00000070
+CSEG lcd_flash_string_1 00000071
+CSEG lcd_flash_string_2 00000076
+CSEG lcd_home     00000078
+CSEG loop         00000092
+CSEG text         000000bb
+CSEG end_isr      000000b8
+CSEG Ausgabe      000000b7

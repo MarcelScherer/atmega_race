@@ -1,30 +1,22 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; LCD-Routinen								   ;;
-;; ============								   ;;
-;; (c)andreas-s@web.de						   ;;
-;;											   ;;
-;; 4bit-Interface							   ;;
-;; DB4-DB7: PD0-PD3							   ;;
-;; RS: PD4									   ;;
-;; E: PD5									   ;;
+;;                 LCD-Routinen                ;;
+;;                 ============                ;;
+;;              (c)andreas-s@web.de            ;;
+;;                                             ;;
+;; 4bit-Interface                              ;;
+;; DB4-DB7:       PD0-PD3                      ;;
+;; RS:            PD4                          ;;
+;; E:             PD5                          ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;sendet ein Datenbyte an das LCD
-lcd_data:
-	mov temp2, temp1					;"Sicherungskopie" für
-										; die Übertragung des 2.Nibbles
-	swap temp1							; Vertauschen
-	andi temp1, 0b00001111				; oberes Nibble auf Null setzen
-	sbr temp1, 1<<4						; entspricht 0b00010000 (Anm.1)
-	out PORTD, temp1					; ausgeben
-	rcall lcd_enable					; Enable-Routine aufrufen
-										; 2. Nibble, kein swap da es schon
-										; an der richtigen stelle ist
-	andi temp2, 0b00001111				; obere Hälfte auf Null setzen
-	sbr temp2, 1<<4						; entspricht 0b00010000
-	out PORTD, temp2					; ausgeben
-	rcall lcd_enable					; Enable-Routine aufrufen
-	rcall delay50us						; Delay-Routine aufrufen
-	ret									; zurück zum Hauptprogramm
+ 
+.equ LCD_PORT = PORTD
+.equ LCD_DDR  = DDRD
+.equ PIN_RS   = 4
+.equ PIN_E    = 5
+
+.ifndef XTAL
+.equ XTAL = 4000000
+.endif
 
 ; Eine Zahl aus dem Register temp1 ausgeben
 lcd_number:
@@ -37,7 +29,10 @@ lcd_number_10:
 	inc temp2
 	rjmp lcd_number_10
 lcd_number_1:
+	push temp1
+	mov temp1, temp2
 	rcall lcd_data						; die Zehnerstelle ausgeben
+	pop temp1
 	subi temp1, -10						; 10 wieder dazuzählen, da die
 										; vorhergehende Schleife 10 zuviel
 										; abgezogen hat
@@ -50,86 +45,147 @@ lcd_number_1:
 	pop temp2							; Register wieder herstellen
 	ret
 
-; sendet einen Befehl an das LCD
-lcd_command:							; wie lcd_data, nur RS=0
-	mov temp2, temp1
-	swap temp1
-	andi temp1, 0b00001111
-	out PORTD, temp1
-	rcall lcd_enable
-	andi temp2, 0b00001111
-	out PORTD, temp2
-	rcall lcd_enable
-	rcall delay50us
-	ret
+ ;sendet ein Datenbyte an das LCD
+lcd_data:
+           push  temp2
+           push  temp3
+           mov   temp2, temp1            ; "Sicherungskopie" für
+                                         ; die Übertragung des 2.Nibbles
+           swap  temp1                   ; Vertauschen
+           andi  temp1, 0b00001111       ; oberes Nibble auf Null setzen
+           sbr   temp1, 1<<PIN_RS        ; entspricht 0b00010000
+           in    temp3, LCD_PORT
+           andi  temp3, 0x80
+           or    temp1, temp3
+           out   LCD_PORT, temp1         ; ausgeben
+           rcall lcd_enable              ; Enable-Routine aufrufen
+                                         ; 2. Nibble, kein swap da es schon
+                                         ; an der richtigen stelle ist
+           andi  temp2, 0b00001111       ; obere Hälfte auf Null setzen 
+           sbr   temp2, 1<<PIN_RS        ; entspricht 0b00010000
+           or    temp2, temp3
+           out   LCD_PORT, temp2         ; ausgeben
+           rcall lcd_enable              ; Enable-Routine aufrufen
+           rcall delay50us               ; Delay-Routine aufrufen
 
-; erzeugt den Enable-Puls
-;
-; Bei höherem Takt (>= 8 MHz) kann es notwendig sein, vor dem Enable High
-; 1-2 Wartetakte (nop) einzufügen.
+           pop   temp3
+           pop   temp2
+           ret                           ; zurück zum Hauptprogramm
+ 
+ ; sendet einen Befehl an das LCD
+lcd_command:                            ; wie lcd_data, nur ohne RS zu setzen
+           push  temp2
+           push  temp3
+
+           mov   temp2, temp1
+           swap  temp1
+           andi  temp1, 0b00001111
+           in    temp3, LCD_PORT
+           andi  temp3, 0x80
+           or    temp1, temp3
+           out   LCD_PORT, temp1
+           rcall lcd_enable
+           andi  temp2, 0b00001111
+           or    temp2, temp3
+           out   LCD_PORT, temp2
+           rcall lcd_enable
+           rcall delay50us
+ 
+           pop   temp3
+           pop   temp2
+           ret
+ 
+ ; erzeugt den Enable-Puls
 lcd_enable:
-	sbi PORTD, 5						; Enable high
-	nop									; 3 Taktzyklen warten
-	nop
-	nop
-	cbi PORTD, 5						; Enable wieder low
-	ret									; Und wieder zurück
-
-; Pause nach jeder Übertragung
-delay50us:								; 50us Pause
-	ldi temp1, $42
-delay50us_:	dec temp1
-	brne delay50us_
-	ret									; wieder zurück
-
-; Längere Pause für manche Befehle
-delay5ms:								; 5ms Pause
-	ldi temp1, $21
-WGLOOP0: ldi temp2, $C9
-WGLOOP1: dec temp2
-	brne WGLOOP1
-	dec temp1
-	brne WGLOOP0
-	ret									; wieder zurück
-
-; Initialisierung: muss ganz am Anfang des Programms aufgerufen werden
+           sbi LCD_PORT, PIN_E          ; Enable high
+           nop                          ; 3 Taktzyklen warten
+           nop
+           nop
+           cbi LCD_PORT, PIN_E          ; Enable wieder low
+           ret                          ; Und wieder zurück                     
+ 
+ ; Pause nach jeder Übertragung
+delay50us:                              ; 50us Pause
+           ldi  temp1, ( XTAL * 50 / 3 ) / 1000000
+delay50us_:
+           dec  temp1
+           brne delay50us_
+           ret                          ; wieder zurück
+ 
+ ; Längere Pause für manche Befehle
+delay5ms:                               ; 5ms Pause
+           ldi  temp1, ( XTAL * 5 / 607 ) / 1000
+WGLOOP0:   ldi  temp2, $C9
+WGLOOP1:   dec  temp2
+           brne WGLOOP1
+           dec  temp1
+           brne WGLOOP0
+           ret                          ; wieder zurück
+ 
+ ; Initialisierung: muss ganz am Anfang des Programms aufgerufen werden
 lcd_init:
-	ldi temp3,50
+           push  temp1
+           in    temp1, LCD_DDR
+           ori   temp1, (1<<PIN_E) | (1<<PIN_RS) | 0x0F
+           out   LCD_DDR, temp1
+
+           ldi   temp3,6
 powerupwait:
-	rcall delay5ms
-	dec temp3
-	brne powerupwait
-	ldi temp1, 0b00000011				; muss 3mal hintereinander gesendet
-	out PORTD, temp1					; werden zur Initialisierung
-	rcall lcd_enable					; 1
-	rcall delay5ms
-	rcall lcd_enable					; 2
-	rcall delay5ms
-	rcall lcd_enable					; und 3!
-	rcall delay5ms
-	ldi temp1, 0b00000010				; 4bit-Modus einstellen
-	out PORTD, temp1
-	rcall lcd_enable
-	rcall delay5ms
-	ldi temp1, 0b00101000				; 4Bit / 2 Zeilen / 5x8
-	rcall lcd_command
-	ldi temp1, 0b00001100				; Display ein / Cursor aus / kein
-										; Blinken
-	rcall lcd_command
-	ldi temp1, 0b00000100				; inkrement / kein Scrollen
-	rcall lcd_command
-	ret
+           rcall delay5ms
+           dec   temp3
+           brne  powerupwait
+           ldi   temp1,    0b00000011   ; muss 3mal hintereinander gesendet
+           out   LCD_PORT, temp1        ; werden zur Initialisierung
+           rcall lcd_enable             ; 1
+           rcall delay5ms
+           rcall lcd_enable             ; 2
+           rcall delay5ms
+           rcall lcd_enable             ; und 3!
+           rcall delay5ms
+           ldi   temp1,    0b00000010   ; 4bit-Modus einstellen
+           out   LCD_PORT, temp1
+           rcall lcd_enable
+           rcall delay5ms
+           ldi   temp1,    0b00101000   ; 4 Bot, 2 Zeilen
+           rcall lcd_command
+           ldi   temp1,    0b00001100   ; Display on, Cursor off
+           rcall lcd_command
+           ldi   temp1,    0b00000100   ; endlich fertig
+           rcall lcd_command
 
-; Sendet den Befehl zur Löschung des Displays
+           pop   temp1
+           ret
+ 
+ ; Sendet den Befehl zur Löschung des Displays
 lcd_clear:
-	ldi temp1, 0b00000001				; Display löschen
-	rcall lcd_command
-	rcall delay5ms
-	ret
+           push  temp1
+           ldi   temp1,    0b00000001   ; Display löschen
+           rcall lcd_command
+           rcall delay5ms
+           pop   temp1
+           ret
 
-; Sendet den Befehl: Cursor Home
+ ; Einen konstanten Text aus dem Flash Speicher
+ ; ausgeben. Der Text wird mit einer 0 beendet
+lcd_flash_string:
+           push  temp1
+
+lcd_flash_string_1:
+           lpm   temp1, Z+
+           cpi   temp1, 0
+           breq  lcd_flash_string_2
+           rcall  lcd_data
+           rjmp  lcd_flash_string_1
+
+lcd_flash_string_2:
+           pop   temp1
+           ret
+
+ ; Cursor Home
 lcd_home:
-	ldi temp1, 0b00000010				; Cursor Home
-	rcall lcd_command
-	rcall delay5ms
-	ret
+           push  temp1
+           ldi   temp1,    0b00000010   ; Cursor Home
+           rcall lcd_command
+           rcall delay5ms
+           pop   temp1
+           ret

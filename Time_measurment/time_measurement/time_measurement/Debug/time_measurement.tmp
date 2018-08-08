@@ -23,25 +23,29 @@
   <FILE>time_measurement.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <main><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm</FILE><LINE>23</LINE></main>
-  <timer1_compare><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm</FILE><LINE>75</LINE></timer1_compare>
-  <lcd_init><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>96</LINE></lcd_init>
-  <lcd_clear><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>124</LINE></lcd_clear>
-  <loop><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm</FILE><LINE>55</LINE></loop>
-  <lcd_number><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>30</LINE></lcd_number>
-  <lcd_data><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>12</LINE></lcd_data>
-  <end_isr><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm</FILE><LINE>94</LINE></end_isr>
-  <ausgabe><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm</FILE><LINE>91</LINE></ausgabe>
-  <lcd_enable><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>70</LINE></lcd_enable>
-  <delay50us><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>79</LINE></delay50us>
-  <lcd_number_10><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>34</LINE></lcd_number_10>
-  <lcd_number_1><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>39</LINE></lcd_number_1>
-  <lcd_command><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>54</LINE></lcd_command>
-  <delay50us_><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>81</LINE></delay50us_>
-  <delay5ms><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>86</LINE></delay5ms>
-  <WGLOOP0><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>88</LINE></WGLOOP0>
-  <WGLOOP1><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>89</LINE></WGLOOP1>
-  <powerupwait><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>98</LINE></powerupwait>
-  <lcd_home><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>131</LINE></lcd_home>
+  <main><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm</FILE><LINE>24</LINE></main>
+  <timer1_compare><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm</FILE><LINE>78</LINE></timer1_compare>
+  <lcd_number><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>22</LINE></lcd_number>
+  <lcd_number_10><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>26</LINE></lcd_number_10>
+  <lcd_number_1><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>31</LINE></lcd_number_1>
+  <lcd_data><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>49</LINE></lcd_data>
+  <lcd_enable><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>99</LINE></lcd_enable>
+  <delay50us><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>108</LINE></delay50us>
+  <lcd_command><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>76</LINE></lcd_command>
+  <delay50us_><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>110</LINE></delay50us_>
+  <delay5ms><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>116</LINE></delay5ms>
+  <WGLOOP0><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>118</LINE></WGLOOP0>
+  <WGLOOP1><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>119</LINE></WGLOOP1>
+  <lcd_init><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>126</LINE></lcd_init>
+  <powerupwait><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>133</LINE></powerupwait>
+  <lcd_clear><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>160</LINE></lcd_clear>
+  <lcd_flash_string><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>170</LINE></lcd_flash_string>
+  <lcd_flash_string_1><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>173</LINE></lcd_flash_string_1>
+  <lcd_flash_string_2><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>180</LINE></lcd_flash_string_2>
+  <lcd_home><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm</FILE><LINE>185</LINE></lcd_home>
+  <loop><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm</FILE><LINE>53</LINE></loop>
+  <text><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm</FILE><LINE>104</LINE></text>
+  <end_isr><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm</FILE><LINE>99</LINE></end_isr>
+  <Ausgabe><FILE>C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm</FILE><LINE>97</LINE></Ausgabe>
  </LABELS>
 </ASSEMBLER_INFO>

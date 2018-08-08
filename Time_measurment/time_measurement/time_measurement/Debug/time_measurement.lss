@@ -1,10 +1,10 @@
 
-AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Tue Aug 07 19:43:03 2018
+AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Wed Aug 08 19:32:28 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m8def.inc'
-C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm(99): Including file 'C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm'
+C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm(22): Including file 'C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m8def.inc'
-C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm(99): Including file 'C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm'
+C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm(22): Including file 'C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm'
                                  
                                  ;
                                  
@@ -752,233 +752,297 @@ C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\ti
                                  ; Author : Marcel
                                  ;
                                  
-                                 
                                  .def temp1 = r16
                                  .def temp2 = r17
                                  .def temp3 = r18
-                                 
-                                 .def flag    = r19
-                                 .def mil_sec = r20
-                                 .def second  = r21
-                                 .def minute  = r22
+                                 .def Flag = r19
+                                 .def SubCount = r21
+                                 .def mil_sec = r22
+                                 .def second = r23
+                                 .def minute = r24
                                  
                                  .org 0x0000
-000000 c006                      		rjmp main						; Reset Handler jump to main
+000000 c07d                      	rjmp main							; reset hanlder -> jump to main
                                  .org OC1Aaddr
-000006 c023                      		rjmp timer1_compare				; timer compare handler
+000006 c09e                      	rjmp timer1_compare					; Timer Compare Handler -> jump to timer1_compare
                                  
-                                 main:
-                                 	; init stack pointer
-000007 e50f                      	ldi temp1, LOW(RAMEND)				; LOW-Byte der obersten RAM-Adresse
-000008 bf0d                      	out SPL, temp1
-000009 e004                      	ldi temp1, HIGH(RAMEND)				; HIGH-Byte der obersten RAM-Adresse
-00000a bf0e                      	out SPH, temp1
-                                 	
-                                 	; init Prot D for Display actuation
-00000b ef0f                      	ldi temp1, 0xFF						; Port D = Ausgang
-00000c bb01                      	out DDRD, temp1
+                                 .include "lcd-routines.asm"				; include lcd library
                                  
-                                 	; init and clear display
-00000d d05f                      	rcall lcd_init						; Display initialisieren
-00000e d075                      	rcall lcd_clear						; Display löschen
-                                 	
-                                 	; timer initialisieren
-00000f e001                      	ldi temp1, high( 400 - 1 )
-000010 bd0b                      	out OCR1AH, temp1
-000011 e80f                      	ldi temp1, low( 400 - 1 ) 
-000012 e009                      	ldi temp1, (1 << WGM12) | (1 << CS10) ; ctc modus einschalten, teiler auf 1
-000013 bd0e                      	out TCCR1B, temp1
-000014 e100                      	ldi temp1, 1 << OCIE1A				; OCIE1A: Interrupt bei Timer compare
-000015 bf09                      	out TIMSK, temp1
-                                 
-                                 	;initialisiere variable
-000016 2744                      	clr mil_sec
-000017 2755                      	clr second
-000018 2766                      	clr minute
-000019 2733                      	clr flag
-                                 
-00001a 9478                      	sei									; schalte interrupts scharf
-                                 
-                                 loop:
-00001b 3030                      	cpi flag,0							; teste ob flag gleich 0
-00001c f3f1                      	breq loop							; wenn 0 springe zu 0
-00001d e030                      	ldi flag,0							; wenn nicht setzte flag wieder auf 0 und ...
-                                 
-00001e d065                      	rcall lcd_clear						; display anzeige löschen
-00001f 2f06                      	mov temp1,minute
-000020 d024                      	rcall lcd_number					; die minuten im display angeben
-000021 e30a                      	ldi temp1, ':'
-000022 d016                      	rcall lcd_data
-000023 2f05                      	mov temp1,second
-000024 d020                      	rcall lcd_number					; die sekunde im display angeben
-000025 e30a                      	ldi temp1, ':'
-000026 d012                      	rcall lcd_data
-000027 2f04                      	mov temp1,mil_sec
-000028 d01c                      	rcall lcd_number					; die milisecond im display angeben
-                                 
-000029 cff1                      	rjmp loop
-                                 
-                                 ; function calculate new timer value
-                                 timer1_compare:
-00002a 930f                      	push temp1							; save temp1 to stack
-00002b b70f                      	in temp1,sreg						; save SREG in temp1
-                                 
-00002c 9543                      	inc mil_sec							; increment milisecond value
-00002d 3644                      	cpi mil_sec, 100					; Wenn dies nicht der 100 interrup ist ...
-00002e f439                      	brne end_isr						; springe zu end_isr
-                                 
-00002f 2744                      	clr	mil_sec							; setzte milisecond zu 0
-000030 9553                      	inc second							; increment second value
-000031 335c                      	cpi second, 60						; Wenn dies nicht der 60 interrup ist ...
-000032 f411                      	brne ausgabe						; springe zu ausgabe
-                                 
-000033 2755                      	clr	second							; setzte second zu 0
-000034 9563                      	inc minute							; increment minute value
-                                 
-                                 ausgabe:
-000035 e031                      	ldi flag, 1							; setze flag das Display aktualisiert werden muss
-                                 
-                                 end_isr:					
-000036 bf0f                      	out sreg,temp1						; zurück kopieren von sreg
-000037 910f                      	pop temp1							; zurückholen des temp1 values vom stack
-000038 9518                      	reti
-                                 
-                                 .include "lcd-routines.asm"				; LCD-Routinen werden hier eingefügt
-                                 
-                                 ;; LCD-Routinen								   ;;
-                                 ;; ============								   ;;
-                                 ;; (c)andreas-s@web.de						   ;;
-                                 ;;											   ;;
-                                 ;; 4bit-Interface							   ;;
-                                 ;; DB4-DB7: PD0-PD3							   ;;
-                                 ;; RS: PD4									   ;;
-                                 ;; E: PD5									   ;;
+                                 ;;                 LCD-Routinen                ;;
+                                 ;;                 ============                ;;
+                                 ;;              (c)andreas-s@web.de            ;;
+                                 ;;                                             ;;
+                                 ;; 4bit-Interface                              ;;
+                                 ;; DB4-DB7:       PD0-PD3                      ;;
+                                 ;; RS:            PD4                          ;;
+                                 ;; E:             PD5                          ;;
                                  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-                                 ;sendet ein Datenbyte an das LCD
-                                 lcd_data:
-000039 2f10                      	mov temp2, temp1					;"Sicherungskopie" für
-                                 										; die Übertragung des 2.Nibbles
-00003a 9502                      	swap temp1							; Vertauschen
-00003b 700f                      	andi temp1, 0b00001111				; oberes Nibble auf Null setzen
-00003c 6100                      	sbr temp1, 1<<4						; entspricht 0b00010000 (Anm.1)
-00003d bb02                      	out PORTD, temp1					; ausgeben
-00003e d01d                      	rcall lcd_enable					; Enable-Routine aufrufen
-                                 										; 2. Nibble, kein swap da es schon
-                                 										; an der richtigen stelle ist
-00003f 701f                      	andi temp2, 0b00001111				; obere Hälfte auf Null setzen
-000040 6110                      	sbr temp2, 1<<4						; entspricht 0b00010000
-000041 bb12                      	out PORTD, temp2					; ausgeben
-000042 d019                      	rcall lcd_enable					; Enable-Routine aufrufen
-000043 d01e                      	rcall delay50us						; Delay-Routine aufrufen
-000044 9508                      	ret									; zurück zum Hauptprogramm
+                                  
+                                 .equ LCD_PORT = PORTD
+                                 .equ LCD_DDR  = DDRD
+                                 .equ PIN_RS   = 4
+                                 .equ PIN_E    = 5
+                                 
+                                 .ifndef XTAL
+                                 .equ XTAL = 4000000
+                                 .endif
                                  
                                  ; Eine Zahl aus dem Register temp1 ausgeben
                                  lcd_number:
-000045 931f                      	push temp2							; register sichern,
+000007 931f                      	push temp2							; register sichern,
                                  										; wird für Zwsichenergebnisse gebraucht
-000046 e310                      	ldi temp2, '0'
+000008 e310                      	ldi temp2, '0'
                                  lcd_number_10:
-000047 500a                      	subi temp1, 10						; abzählen wieviele Zehner in
-000048 f010                      	brcs lcd_number_1					; der Zahl enthalten sind
-000049 9513                      	inc temp2
-00004a cffc                      	rjmp lcd_number_10
+000009 500a                      	subi temp1, 10						; abzählen wieviele Zehner in
+00000a f010                      	brcs lcd_number_1					; der Zahl enthalten sind
+00000b 9513                      	inc temp2
+00000c cffc                      	rjmp lcd_number_10
                                  lcd_number_1:
-00004b dfed                      	rcall lcd_data						; die Zehnerstelle ausgeben
-00004c 5f06                      	subi temp1, -10						; 10 wieder dazuzählen, da die
+00000d 930f                      	push temp1
+00000e 2f01                      	mov temp1, temp2
+00000f d007                      	rcall lcd_data						; die Zehnerstelle ausgeben
+000010 910f                      	pop temp1
+000011 5f06                      	subi temp1, -10						; 10 wieder dazuzählen, da die
                                  										; vorhergehende Schleife 10 zuviel
                                  										; abgezogen hat
                                  										; das Subtrahieren von -10
                                  										; = Addition von +10 ist ein Trick
                                  										; da kein addi Befehl existiert
-00004d e310                      	ldi temp2, '0'						; die übrig gebliebenen Einer
-00004e 0f01                      	add temp1, temp2					; noch ausgeben
-00004f dfe9                      	rcall lcd_data
-000050 911f                      	pop temp2							; Register wieder herstellen
-000051 9508                      	ret
+000012 e310                      	ldi temp2, '0'						; die übrig gebliebenen Einer
+000013 0f01                      	add temp1, temp2					; noch ausgeben
+000014 d002                      	rcall lcd_data
+000015 911f                      	pop temp2							; Register wieder herstellen
+000016 9508                      	ret
                                  
-                                 ; sendet einen Befehl an das LCD
-                                 lcd_command:							; wie lcd_data, nur RS=0
-000052 2f10                      	mov temp2, temp1
-000053 9502                      	swap temp1
-000054 700f                      	andi temp1, 0b00001111
-000055 bb02                      	out PORTD, temp1
-000056 d005                      	rcall lcd_enable
-000057 701f                      	andi temp2, 0b00001111
-000058 bb12                      	out PORTD, temp2
-000059 d002                      	rcall lcd_enable
-00005a d007                      	rcall delay50us
-00005b 9508                      	ret
+                                  ;sendet ein Datenbyte an das LCD
+                                 lcd_data:
+000017 931f                                 push  temp2
+000018 932f                                 push  temp3
+000019 2f10                                 mov   temp2, temp1            ; "Sicherungskopie" für
+                                                                          ; die Übertragung des 2.Nibbles
+00001a 9502                                 swap  temp1                   ; Vertauschen
+00001b 700f                                 andi  temp1, 0b00001111       ; oberes Nibble auf Null setzen
+00001c 6100                                 sbr   temp1, 1<<PIN_RS        ; entspricht 0b00010000
+00001d b322                                 in    temp3, LCD_PORT
+00001e 7820                                 andi  temp3, 0x80
+00001f 2b02                                 or    temp1, temp3
+000020 bb02                                 out   LCD_PORT, temp1         ; ausgeben
+000021 d01b                                 rcall lcd_enable              ; Enable-Routine aufrufen
+                                                                          ; 2. Nibble, kein swap da es schon
+                                                                          ; an der richtigen stelle ist
+000022 701f                                 andi  temp2, 0b00001111       ; obere Hälfte auf Null setzen 
+000023 6110                                 sbr   temp2, 1<<PIN_RS        ; entspricht 0b00010000
+000024 2b12                                 or    temp2, temp3
+000025 bb12                                 out   LCD_PORT, temp2         ; ausgeben
+000026 d016                                 rcall lcd_enable              ; Enable-Routine aufrufen
+000027 d01b                                 rcall delay50us               ; Delay-Routine aufrufen
                                  
-                                 ; erzeugt den Enable-Puls
-                                 ;
-                                 ; Bei höherem Takt (>= 8 MHz) kann es notwendig sein, vor dem Enable High
-                                 ; 1-2 Wartetakte (nop) einzufügen.
+000028 912f                                 pop   temp3
+000029 911f                                 pop   temp2
+00002a 9508                                 ret                           ; zurück zum Hauptprogramm
+                                  
+                                  ; sendet einen Befehl an das LCD
+                                 lcd_command:                            ; wie lcd_data, nur ohne RS zu setzen
+00002b 931f                                 push  temp2
+00002c 932f                                 push  temp3
+                                 
+00002d 2f10                                 mov   temp2, temp1
+00002e 9502                                 swap  temp1
+00002f 700f                                 andi  temp1, 0b00001111
+000030 b322                                 in    temp3, LCD_PORT
+000031 7820                                 andi  temp3, 0x80
+000032 2b02                                 or    temp1, temp3
+000033 bb02                                 out   LCD_PORT, temp1
+000034 d008                                 rcall lcd_enable
+000035 701f                                 andi  temp2, 0b00001111
+000036 2b12                                 or    temp2, temp3
+000037 bb12                                 out   LCD_PORT, temp2
+000038 d004                                 rcall lcd_enable
+000039 d009                                 rcall delay50us
+                                  
+00003a 912f                                 pop   temp3
+00003b 911f                                 pop   temp2
+00003c 9508                                 ret
+                                  
+                                  ; erzeugt den Enable-Puls
                                  lcd_enable:
-00005c 9a95                      	sbi PORTD, 5						; Enable high
-00005d 0000                      	nop									; 3 Taktzyklen warten
-00005e 0000                      	nop
-00005f 0000                      	nop
-000060 9895                      	cbi PORTD, 5						; Enable wieder low
-000061 9508                      	ret									; Und wieder zurück
-                                 
-                                 ; Pause nach jeder Übertragung
-                                 delay50us:								; 50us Pause
-000062 e402                      	ldi temp1, $42
-000063 950a                      delay50us_:	dec temp1
-000064 f7f1                      	brne delay50us_
-000065 9508                      	ret									; wieder zurück
-                                 
-                                 ; Längere Pause für manche Befehle
-                                 delay5ms:								; 5ms Pause
-000066 e201                      	ldi temp1, $21
-000067 ec19                      WGLOOP0: ldi temp2, $C9
-000068 951a                      WGLOOP1: dec temp2
-000069 f7f1                      	brne WGLOOP1
-00006a 950a                      	dec temp1
-00006b f7d9                      	brne WGLOOP0
-00006c 9508                      	ret									; wieder zurück
-                                 
-                                 ; Initialisierung: muss ganz am Anfang des Programms aufgerufen werden
+00003d 9a95                                 sbi LCD_PORT, PIN_E          ; Enable high
+00003e 0000                                 nop                          ; 3 Taktzyklen warten
+00003f 0000                                 nop
+000040 0000                                 nop
+000041 9895                                 cbi LCD_PORT, PIN_E          ; Enable wieder low
+000042 9508                                 ret                          ; Und wieder zurück                     
+                                  
+                                  ; Pause nach jeder Übertragung
+                                 delay50us:                              ; 50us Pause
+000043 e402                                 ldi  temp1, ( XTAL * 50 / 3 ) / 1000000
+                                 delay50us_:
+000044 950a                                 dec  temp1
+000045 f7f1                                 brne delay50us_
+000046 9508                                 ret                          ; wieder zurück
+                                  
+                                  ; Längere Pause für manche Befehle
+                                 delay5ms:                               ; 5ms Pause
+000047 e200                                 ldi  temp1, ( XTAL * 5 / 607 ) / 1000
+000048 ec19                      WGLOOP0:   ldi  temp2, $C9
+000049 951a                      WGLOOP1:   dec  temp2
+00004a f7f1                                 brne WGLOOP1
+00004b 950a                                 dec  temp1
+00004c f7d9                                 brne WGLOOP0
+00004d 9508                                 ret                          ; wieder zurück
+                                  
+                                  ; Initialisierung: muss ganz am Anfang des Programms aufgerufen werden
                                  lcd_init:
-00006d e322                      	ldi temp3,50
+00004e 930f                                 push  temp1
+00004f b301                                 in    temp1, LCD_DDR
+000050 630f                                 ori   temp1, (1<<PIN_E) | (1<<PIN_RS) | 0x0F
+000051 bb01                                 out   LCD_DDR, temp1
+                                 
+000052 e026                                 ldi   temp3,6
                                  powerupwait:
-00006e dff7                      	rcall delay5ms
-00006f 952a                      	dec temp3
-000070 f7e9                      	brne powerupwait
-000071 e003                      	ldi temp1, 0b00000011				; muss 3mal hintereinander gesendet
-000072 bb02                      	out PORTD, temp1					; werden zur Initialisierung
-000073 dfe8                      	rcall lcd_enable					; 1
-000074 dff1                      	rcall delay5ms
-000075 dfe6                      	rcall lcd_enable					; 2
-000076 dfef                      	rcall delay5ms
-000077 dfe4                      	rcall lcd_enable					; und 3!
-000078 dfed                      	rcall delay5ms
-000079 e002                      	ldi temp1, 0b00000010				; 4bit-Modus einstellen
-00007a bb02                      	out PORTD, temp1
-00007b dfe0                      	rcall lcd_enable
-00007c dfe9                      	rcall delay5ms
-00007d e208                      	ldi temp1, 0b00101000				; 4Bit / 2 Zeilen / 5x8
-00007e dfd3                      	rcall lcd_command
-00007f e00c                      	ldi temp1, 0b00001100				; Display ein / Cursor aus / kein
-                                 										; Blinken
-000080 dfd1                      	rcall lcd_command
-000081 e004                      	ldi temp1, 0b00000100				; inkrement / kein Scrollen
-000082 dfcf                      	rcall lcd_command
-000083 9508                      	ret
+000053 dff3                                 rcall delay5ms
+000054 952a                                 dec   temp3
+000055 f7e9                                 brne  powerupwait
+000056 e003                                 ldi   temp1,    0b00000011   ; muss 3mal hintereinander gesendet
+000057 bb02                                 out   LCD_PORT, temp1        ; werden zur Initialisierung
+000058 dfe4                                 rcall lcd_enable             ; 1
+000059 dfed                                 rcall delay5ms
+00005a dfe2                                 rcall lcd_enable             ; 2
+00005b dfeb                                 rcall delay5ms
+00005c dfe0                                 rcall lcd_enable             ; und 3!
+00005d dfe9                                 rcall delay5ms
+00005e e002                                 ldi   temp1,    0b00000010   ; 4bit-Modus einstellen
+00005f bb02                                 out   LCD_PORT, temp1
+000060 dfdc                                 rcall lcd_enable
+000061 dfe5                                 rcall delay5ms
+000062 e208                                 ldi   temp1,    0b00101000   ; 4 Bot, 2 Zeilen
+000063 dfc7                                 rcall lcd_command
+000064 e00c                                 ldi   temp1,    0b00001100   ; Display on, Cursor off
+000065 dfc5                                 rcall lcd_command
+000066 e004                                 ldi   temp1,    0b00000100   ; endlich fertig
+000067 dfc3                                 rcall lcd_command
                                  
-                                 ; Sendet den Befehl zur Löschung des Displays
+000068 910f                                 pop   temp1
+000069 9508                                 ret
+                                  
+                                  ; Sendet den Befehl zur Löschung des Displays
                                  lcd_clear:
-000084 e001                      	ldi temp1, 0b00000001				; Display löschen
-000085 dfcc                      	rcall lcd_command
-000086 dfdf                      	rcall delay5ms
-000087 9508                      	ret
+00006a 930f                                 push  temp1
+00006b e001                                 ldi   temp1,    0b00000001   ; Display löschen
+00006c dfbe                                 rcall lcd_command
+00006d dfd9                                 rcall delay5ms
+00006e 910f                                 pop   temp1
+00006f 9508                                 ret
                                  
-                                 ; Sendet den Befehl: Cursor Home
+                                  ; Einen konstanten Text aus dem Flash Speicher
+                                  ; ausgeben. Der Text wird mit einer 0 beendet
+                                 lcd_flash_string:
+000070 930f                                 push  temp1
+                                 
+                                 lcd_flash_string_1:
+000071 9105                                 lpm   temp1, Z+
+000072 3000                                 cpi   temp1, 0
+000073 f011                                 breq  lcd_flash_string_2
+000074 dfa2                                 rcall  lcd_data
+000075 cffb                                 rjmp  lcd_flash_string_1
+                                 
+                                 lcd_flash_string_2:
+000076 910f                                 pop   temp1
+000077 9508                                 ret
+                                 
+                                  ; Cursor Home
                                  lcd_home:
-000088 e002                      	ldi temp1, 0b00000010				; Cursor Home
-000089 dfc8                      	rcall lcd_command
-00008a dfdb                      	rcall delay5ms
-00008b 9508                      
+000078 930f                                 push  temp1
+000079 e002                                 ldi   temp1,    0b00000010   ; Cursor Home
+00007a dfb0                                 rcall lcd_command
+00007b dfcb                                 rcall delay5ms
+00007c 910f                                 pop   temp1
+00007d 9508                                 ret
+                                 
+                                 main:
+                                 	; initialise stack pointer
+00007e e50f                      	ldi temp1, LOW(RAMEND)				
+00007f bf0d                      	out SPL, temp1
+000080 e004                      	ldi temp1, HIGH(RAMEND)
+000081 bf0e                      	out SPH, temp1
+                                 
+                                 	; init and clear display
+000082 dfcb                      	rcall lcd_init
+000083 dfe6                      	rcall lcd_clear
+                                 
+                                 	; init timer for 100 interrupts per second
+000084 e90c                      	ldi temp1, high( 40000 - 1 )
+000085 bd0b                      	out OCR1AH, temp1
+000086 e30f                      	ldi temp1, low( 40000 - 1 )
+000087 bd0a                      	out OCR1AL, temp1
+000088 e009                      	ldi temp1, ( 1 << WGM12 ) | ( 1 << CS10 )
+000089 bd0e                      	out TCCR1B, temp1
+00008a e100                      	ldi temp1, 1 << OCIE1A				; OCIE1A: Interrupt bei Timer Compare
+00008b bf09                      	out TIMSK, temp1
+                                 
+                                 	; clear all variable
+00008c 2788                      	clr minute 
+00008d 2777                      	clr second
+00008e 2766                      	clr mil_sec
+00008f 2755                      	clr SubCount
+000090 2733                      	clr Flag ; Flag löschen
+000091 9478                      	sei
+                                 
+                                 loop:
+000092 3030                      	cpi flag,0
+000093 f3f1                      	breq loop							; check if flag for update display is active
+000094 e030                      	ldi flag,0							; reset flag
+                                 
+000095 dfd4                      	rcall lcd_clear						; claer lcd display
+000096 e7e6                      	ldi ZL, LOW(text*2)					; load text flash address to z-pointer
+000097 e0f1                      	ldi ZH, HIGH(text*2)	
+000098 dfd7                      	rcall lcd_flash_string				; get string to display
+                                 
+000099 2f08                      	mov temp1, minute					; write minutes on display
+00009a df6c                      	rcall lcd_number
+00009b e30a                      	ldi temp1, ':'						; write ':' on display
+00009c df7a                      	rcall lcd_data
+00009d 2f07                      	mov temp1, second					; write seconds on display
+00009e df68                      	rcall lcd_number
+00009f e20e                      	ldi temp1, '.'						; write ':' on display
+0000a0 df76                      	rcall lcd_data
+0000a1 e300                      	ldi temp1, '0'
+0000a2 0f06                      	add temp1, mil_sec
+0000a3 df73                      	rcall lcd_data
+                                 
+0000a4 cfed                      	rjmp loop
+                                 
+                                 ; Timer 1 Output Compare Handler
+                                 timer1_compare: 
+0000a5 930f                      	push temp1							; store temp1 on stack
+0000a6 b70f                      	in temp1,sreg						; sotre SREG in reg temp1
+0000a7 9553                      	inc SubCount						; increment subCount
+0000a8 305a                      	cpi SubCount, 10					; compare Subcount with 10
+0000a9 f471                      	brne end_isr						; if not equal 10 go to end_isr else ...
+0000aa 2755                      	clr SubCount						; reset Subcount
+0000ab 9563                      	inc mil_sec							; increment mil_sec (0.1 second)
+0000ac 306a                      	cpi mil_sec, 10						; compare mil_sec (0.1 second) with 10
+0000ad f449                      	brne Ausgabe						; if not equal 10 go to end_isr else ...
+0000ae 2766                      	clr mil_sec							; reset mil_sec (0.1 second)
+0000af 9573                      	inc second							; increment seconds
+0000b0 337c                      	cpi second, 60						; compare second witch 60
+0000b1 f429                      	brne Ausgabe						; if net equal 60 go to Ausgabe else...
+0000b2 2777                      	clr second		  					; reset second
+0000b3 9583                      	inc minute							; increment minute
+0000b4 3683                      	cpi minute, 99						; compare minute with 99
+0000b5 f409                      	brne Ausgabe						; if not equal 99 go to Ausgabe else ...
+0000b6 2788                      	clr minute							; clear minutes
+                                 Ausgabe:
+0000b7 e031                      	ldi flag,1							; set flag for update display
+                                 end_isr:
+0000b8 bf0f                      	out sreg,temp1						; restore reg sreg form reg temp1
+0000b9 910f                      	pop temp1							; restore temp1 from stack
+0000ba 9518                      	reti
+                                 
+                                 text:
+0000bb 6954
+0000bc 656d
+0000bd 203a
 
 
 RESOURCE USE INFORMATION
@@ -996,39 +1060,39 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega8" register use summary:
-x  :   0 y  :   0 z  :   0 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
+x  :   0 y  :   0 z  :   1 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  47 r17:  15 r18:   2 r19:   4 r20:   5 
-r21:   5 r22:   3 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
-r29:   0 r30:   0 r31:   0 
-Registers used: 7 out of 35 (20.0%)
+r13:   0 r14:   0 r15:   0 r16:  65 r17:  22 r18:  14 r19:   4 r20:   0 
+r21:   4 r22:   5 r23:   5 r24:   5 r25:   0 r26:   0 r27:   0 r28:   0 
+r29:   0 r30:   1 r31:   1 
+Registers used: 11 out of 35 (31.4%)
 
 "ATmega8" instruction use summary:
-.lds  :   0 .sts  :   0 adc   :   0 add   :   1 adiw  :   0 and   :   0 
-andi  :   4 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   1 breq  :   1 brge  :   0 brhc  :   0 brhs  :   0 
-brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 brne  :   6 
+.lds  :   0 .sts  :   0 adc   :   0 add   :   2 adiw  :   0 and   :   0 
+andi  :   6 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
+brcc  :   0 brcs  :   1 breq  :   2 brge  :   0 brhc  :   0 brhs  :   0 
+brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 brne  :   8 
 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 brvs  :   0 
 bset  :   0 bst   :   0 cbi   :   1 cbr   :   0 clc   :   0 clh   :   0 
-cli   :   0 cln   :   0 clr   :   6 cls   :   0 clt   :   0 clv   :   0 
-clz   :   0 com   :   0 cp    :   0 cpc   :   0 cpi   :   3 cpse  :   0 
+cli   :   0 cln   :   0 clr   :   9 cls   :   0 clt   :   0 clv   :   0 
+clz   :   0 com   :   0 cp    :   0 cpc   :   0 cpi   :   6 cpse  :   0 
 dec   :   4 eor   :   0 fmul  :   0 fmuls :   0 fmulsu:   0 icall :   0 
-ijmp  :   0 in    :   1 inc   :   4 ld    :   0 ldd   :   0 ldi   :  24 
-lds   :   0 lpm   :   0 lsl   :   0 lsr   :   0 mov   :   5 movw  :   0 
-mul   :   0 muls  :   0 mulsu :   0 neg   :   0 nop   :   3 or    :   0 
-ori   :   0 out   :  13 pop   :   2 push  :   2 rcall :  32 ret   :   9 
-reti  :   1 rjmp  :   4 rol   :   0 ror   :   0 sbc   :   0 sbci  :   0 
+ijmp  :   0 in    :   4 inc   :   5 ld    :   0 ldd   :   0 ldi   :  26 
+lds   :   0 lpm   :   1 lsl   :   0 lsr   :   0 mov   :   5 movw  :   0 
+mul   :   0 muls  :   0 mulsu :   0 neg   :   0 nop   :   3 or    :   4 
+ori   :   1 out   :  14 pop   :  11 push  :  11 rcall :  34 ret   :  10 
+reti  :   1 rjmp  :   5 rol   :   0 ror   :   0 sbc   :   0 sbci  :   0 
 sbi   :   1 sbic  :   0 sbis  :   0 sbiw  :   0 sbr   :   2 sbrc  :   0 
 sbrs  :   0 sec   :   0 seh   :   0 sei   :   1 sen   :   0 ser   :   0 
 ses   :   0 set   :   0 sev   :   0 sez   :   0 sleep :   0 spm   :   0 
 st    :   0 std   :   0 sts   :   0 sub   :   0 subi  :   2 swap  :   2 
 tst   :   0 wdr   :   0 
-Instructions used: 26 out of 110 (23.6%)
+Instructions used: 29 out of 110 (26.4%)
 
 "ATmega8" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000118    270      0    270    8192   3.3%
+[.cseg] 0x000000 0x00017e    364      8    372    8192   4.5%
 [.dseg] 0x000060 0x000060      0      0      0    1024   0.0%
 [.eseg] 0x000000 0x000000      0      0      0     512   0.0%
 
