@@ -5,14 +5,20 @@
 ; Author : Marcel
 ;
 
+.equ STA_START     = 0
+.equ STA_ROUND_1   = 1
+.equ DELAY_TIME    = 5
+
 .def temp1 = r16
 .def temp2 = r17
 .def temp3 = r18
 .def Flag = r19
-.def SubCount = r21
-.def mil_sec = r22
-.def second = r23
-.def minute = r24
+.def SubCount    = r21
+.def mil_sec     = r22
+.def second      = r23
+.def minute      = r24
+.def timer_state = r25
+#define delay_timer XL ;  use register r26
 
 .org 0x0000
 	rjmp main							; reset hanlder -> jump to main
@@ -32,6 +38,10 @@ main:
 	rcall lcd_init
 	rcall lcd_clear
 
+	; init in- and output pints
+	ldi temp1,0b00000000
+	out DDRB,temp1						; config all PBx -Pins as input
+
 	; init timer for 100 interrupts per second
 	ldi temp1, high( 40000 - 1 )
 	out OCR1AH, temp1
@@ -47,10 +57,19 @@ main:
 	clr second
 	clr mil_sec
 	clr SubCount
-	clr Flag ; Flag löschen
+	ldi Flag,1							; update display
+	ldi timer_state,STA_START
+	clr delay_timer;
 	sei
 
 loop:
+	sbic PINB, 0						; scip jmp loop_1 if bit 0 is GND
+	rjmp loop_1							; jump to loop_1
+	cpi delay_timer,0					; compare delay timer with zero
+	brne loop_1							; if not zero branch to loop_1 else ...
+	ldi delay_timer,DELAY_TIME			; set timer to DELAY_TIME
+	inc timer_state						; increment to next state
+loop_1:
 	cpi flag,0
 	breq loop							; check if flag for update display is active
 	ldi flag,0							; reset flag
@@ -79,6 +98,10 @@ timer1_compare:
 	push temp1							; store temp1 on stack
 	in temp1,sreg						; sotre SREG in reg temp1
 	inc SubCount						; increment subCount
+
+	cpi timer_state,STA_ROUND_1			; check if state is STA_ROUND_1
+	brne end_isr						; if state is not STA_ROUND_1 jump to end_isr
+
 	cpi SubCount, 10					; compare Subcount with 10
 	brne end_isr						; if not equal 10 go to end_isr else ...
 	clr SubCount						; reset Subcount
@@ -87,6 +110,10 @@ timer1_compare:
 	brne Ausgabe						; if not equal 10 go to end_isr else ...
 	clr mil_sec							; reset mil_sec (0.1 second)
 	inc second							; increment seconds
+	cpi delay_timer,0					; compare delay timer, if not zero ...
+	breq timer1_compare_1
+	dec delay_timer						; ... decrement delay timer
+timer1_compare_1: 
 	cpi second, 60						; compare second witch 60
 	brne Ausgabe						; if net equal 60 go to Ausgabe else...
 	clr second		  					; reset second

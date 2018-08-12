@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Wed Aug 08 19:32:28 2018
+AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Sun Aug 12 20:13:50 2018
 
 
 EQU  SIGNATURE_000 0000001e
@@ -507,6 +507,9 @@ EQU  ACIaddr      00000010
 EQU  TWIaddr      00000011
 EQU  SPMRaddr     00000012
 EQU  INT_VECTORS_SIZE 00000013
+EQU  STA_START    00000000
+EQU  STA_ROUND_1  00000001
+EQU  DELAY_TIME   00000005
 DEF  temp1        r16
 DEF  temp2        r17
 DEF  temp3        r18
@@ -515,8 +518,9 @@ DEF  SubCount     r21
 DEF  mil_sec      r22
 DEF  second       r23
 DEF  minute       r24
+DEF  timer_state  r25
 CSEG main         0000007e
-CSEG timer1_compare 000000a5
+CSEG timer1_compare 000000af
 EQU  LCD_PORT     00000012
 EQU  LCD_DDR      00000011
 EQU  PIN_RS       00000004
@@ -540,7 +544,9 @@ CSEG lcd_flash_string 00000070
 CSEG lcd_flash_string_1 00000071
 CSEG lcd_flash_string_2 00000076
 CSEG lcd_home     00000078
-CSEG loop         00000092
-CSEG text         000000bb
-CSEG end_isr      000000b8
-CSEG Ausgabe      000000b7
+CSEG loop         00000096
+CSEG loop_1       0000009c
+CSEG text         000000ca
+CSEG end_isr      000000c7
+CSEG Ausgabe      000000c6
+CSEG timer1_compare_1 000000bf

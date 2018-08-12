@@ -1,10 +1,10 @@
 
-AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Wed Aug 08 19:32:28 2018
+AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Sun Aug 12 20:13:50 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m8def.inc'
-C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm(22): Including file 'C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm'
+C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm(28): Including file 'C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m8def.inc'
-C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm(22): Including file 'C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm'
+C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm(28): Including file 'C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm'
                                  
                                  ;
                                  
@@ -752,19 +752,25 @@ C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\ti
                                  ; Author : Marcel
                                  ;
                                  
+                                 .equ STA_START     = 0
+                                 .equ STA_ROUND_1   = 1
+                                 .equ DELAY_TIME    = 5
+                                 
                                  .def temp1 = r16
                                  .def temp2 = r17
                                  .def temp3 = r18
                                  .def Flag = r19
-                                 .def SubCount = r21
-                                 .def mil_sec = r22
-                                 .def second = r23
-                                 .def minute = r24
+                                 .def SubCount    = r21
+                                 .def mil_sec     = r22
+                                 .def second      = r23
+                                 .def minute      = r24
+                                 .def timer_state = r25
+                                 #define delay_timer XL ;  use register r26
                                  
                                  .org 0x0000
 000000 c07d                      	rjmp main							; reset hanlder -> jump to main
                                  .org OC1Aaddr
-000006 c09e                      	rjmp timer1_compare					; Timer Compare Handler -> jump to timer1_compare
+000006 c0a8                      	rjmp timer1_compare					; Timer Compare Handler -> jump to timer1_compare
                                  
                                  .include "lcd-routines.asm"				; include lcd library
                                  
@@ -970,79 +976,100 @@ C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\ti
 000082 dfcb                      	rcall lcd_init
 000083 dfe6                      	rcall lcd_clear
                                  
+                                 	; init in- and output pints
+000084 e000                      	ldi temp1,0b00000000
+000085 bb07                      	out DDRB,temp1						; config all PBx -Pins as input
+                                 
                                  	; init timer for 100 interrupts per second
-000084 e90c                      	ldi temp1, high( 40000 - 1 )
-000085 bd0b                      	out OCR1AH, temp1
-000086 e30f                      	ldi temp1, low( 40000 - 1 )
-000087 bd0a                      	out OCR1AL, temp1
-000088 e009                      	ldi temp1, ( 1 << WGM12 ) | ( 1 << CS10 )
-000089 bd0e                      	out TCCR1B, temp1
-00008a e100                      	ldi temp1, 1 << OCIE1A				; OCIE1A: Interrupt bei Timer Compare
-00008b bf09                      	out TIMSK, temp1
+000086 e90c                      	ldi temp1, high( 40000 - 1 )
+000087 bd0b                      	out OCR1AH, temp1
+000088 e30f                      	ldi temp1, low( 40000 - 1 )
+000089 bd0a                      	out OCR1AL, temp1
+00008a e009                      	ldi temp1, ( 1 << WGM12 ) | ( 1 << CS10 )
+00008b bd0e                      	out TCCR1B, temp1
+00008c e100                      	ldi temp1, 1 << OCIE1A				; OCIE1A: Interrupt bei Timer Compare
+00008d bf09                      	out TIMSK, temp1
                                  
                                  	; clear all variable
-00008c 2788                      	clr minute 
-00008d 2777                      	clr second
-00008e 2766                      	clr mil_sec
-00008f 2755                      	clr SubCount
-000090 2733                      	clr Flag ; Flag löschen
-000091 9478                      	sei
+00008e 2788                      	clr minute 
+00008f 2777                      	clr second
+000090 2766                      	clr mil_sec
+000091 2755                      	clr SubCount
+000092 e031                      	ldi Flag,1							; update display
+000093 e090                      	ldi timer_state,STA_START
+000094 27aa                      	clr delay_timer;
+000095 9478                      	sei
                                  
                                  loop:
-000092 3030                      	cpi flag,0
-000093 f3f1                      	breq loop							; check if flag for update display is active
-000094 e030                      	ldi flag,0							; reset flag
+000096 99b0                      	sbic PINB, 0						; scip jmp loop_1 if bit 0 is GND
+000097 c004                      	rjmp loop_1							; jump to loop_1
+000098 30a0                      	cpi delay_timer,0					; compare delay timer with zero
+000099 f411                      	brne loop_1							; if not zero branch to loop_1 else ...
+00009a e0a5                      	ldi delay_timer,DELAY_TIME			; set timer to DELAY_TIME
+00009b 9593                      	inc timer_state						; increment to next state
+                                 loop_1:
+00009c 3030                      	cpi flag,0
+00009d f3c1                      	breq loop							; check if flag for update display is active
+00009e e030                      	ldi flag,0							; reset flag
                                  
-000095 dfd4                      	rcall lcd_clear						; claer lcd display
-000096 e7e6                      	ldi ZL, LOW(text*2)					; load text flash address to z-pointer
-000097 e0f1                      	ldi ZH, HIGH(text*2)	
-000098 dfd7                      	rcall lcd_flash_string				; get string to display
+00009f dfca                      	rcall lcd_clear						; claer lcd display
+0000a0 e9e4                      	ldi ZL, LOW(text*2)					; load text flash address to z-pointer
+0000a1 e0f1                      	ldi ZH, HIGH(text*2)	
+0000a2 dfcd                      	rcall lcd_flash_string				; get string to display
                                  
-000099 2f08                      	mov temp1, minute					; write minutes on display
-00009a df6c                      	rcall lcd_number
-00009b e30a                      	ldi temp1, ':'						; write ':' on display
-00009c df7a                      	rcall lcd_data
-00009d 2f07                      	mov temp1, second					; write seconds on display
-00009e df68                      	rcall lcd_number
-00009f e20e                      	ldi temp1, '.'						; write ':' on display
-0000a0 df76                      	rcall lcd_data
-0000a1 e300                      	ldi temp1, '0'
-0000a2 0f06                      	add temp1, mil_sec
-0000a3 df73                      	rcall lcd_data
+0000a3 2f08                      	mov temp1, minute					; write minutes on display
+0000a4 df62                      	rcall lcd_number
+0000a5 e30a                      	ldi temp1, ':'						; write ':' on display
+0000a6 df70                      	rcall lcd_data
+0000a7 2f07                      	mov temp1, second					; write seconds on display
+0000a8 df5e                      	rcall lcd_number
+0000a9 e20e                      	ldi temp1, '.'						; write ':' on display
+0000aa df6c                      	rcall lcd_data
+0000ab e300                      	ldi temp1, '0'
+0000ac 0f06                      	add temp1, mil_sec
+0000ad df69                      	rcall lcd_data
                                  
-0000a4 cfed                      	rjmp loop
+0000ae cfe7                      	rjmp loop
                                  
                                  ; Timer 1 Output Compare Handler
                                  timer1_compare: 
-0000a5 930f                      	push temp1							; store temp1 on stack
-0000a6 b70f                      	in temp1,sreg						; sotre SREG in reg temp1
-0000a7 9553                      	inc SubCount						; increment subCount
-0000a8 305a                      	cpi SubCount, 10					; compare Subcount with 10
-0000a9 f471                      	brne end_isr						; if not equal 10 go to end_isr else ...
-0000aa 2755                      	clr SubCount						; reset Subcount
-0000ab 9563                      	inc mil_sec							; increment mil_sec (0.1 second)
-0000ac 306a                      	cpi mil_sec, 10						; compare mil_sec (0.1 second) with 10
-0000ad f449                      	brne Ausgabe						; if not equal 10 go to end_isr else ...
-0000ae 2766                      	clr mil_sec							; reset mil_sec (0.1 second)
-0000af 9573                      	inc second							; increment seconds
-0000b0 337c                      	cpi second, 60						; compare second witch 60
-0000b1 f429                      	brne Ausgabe						; if net equal 60 go to Ausgabe else...
-0000b2 2777                      	clr second		  					; reset second
-0000b3 9583                      	inc minute							; increment minute
-0000b4 3683                      	cpi minute, 99						; compare minute with 99
-0000b5 f409                      	brne Ausgabe						; if not equal 99 go to Ausgabe else ...
-0000b6 2788                      	clr minute							; clear minutes
+0000af 930f                      	push temp1							; store temp1 on stack
+0000b0 b70f                      	in temp1,sreg						; sotre SREG in reg temp1
+0000b1 9553                      	inc SubCount						; increment subCount
+                                 
+0000b2 3091                      	cpi timer_state,STA_ROUND_1			; check if state is STA_ROUND_1
+0000b3 f499                      	brne end_isr						; if state is not STA_ROUND_1 jump to end_isr
+                                 
+0000b4 305a                      	cpi SubCount, 10					; compare Subcount with 10
+0000b5 f489                      	brne end_isr						; if not equal 10 go to end_isr else ...
+0000b6 2755                      	clr SubCount						; reset Subcount
+0000b7 9563                      	inc mil_sec							; increment mil_sec (0.1 second)
+0000b8 306a                      	cpi mil_sec, 10						; compare mil_sec (0.1 second) with 10
+0000b9 f461                      	brne Ausgabe						; if not equal 10 go to end_isr else ...
+0000ba 2766                      	clr mil_sec							; reset mil_sec (0.1 second)
+0000bb 9573                      	inc second							; increment seconds
+0000bc 30a0                      	cpi delay_timer,0					; compare delay timer, if not zero ...
+0000bd f009                      	breq timer1_compare_1
+0000be 95aa                      	dec delay_timer						; ... decrement delay timer
+                                 timer1_compare_1: 
+0000bf 337c                      	cpi second, 60						; compare second witch 60
+0000c0 f429                      	brne Ausgabe						; if net equal 60 go to Ausgabe else...
+0000c1 2777                      	clr second		  					; reset second
+0000c2 9583                      	inc minute							; increment minute
+0000c3 3683                      	cpi minute, 99						; compare minute with 99
+0000c4 f409                      	brne Ausgabe						; if not equal 99 go to Ausgabe else ...
+0000c5 2788                      	clr minute							; clear minutes
                                  Ausgabe:
-0000b7 e031                      	ldi flag,1							; set flag for update display
+0000c6 e031                      	ldi flag,1							; set flag for update display
                                  end_isr:
-0000b8 bf0f                      	out sreg,temp1						; restore reg sreg form reg temp1
-0000b9 910f                      	pop temp1							; restore temp1 from stack
-0000ba 9518                      	reti
+0000c7 bf0f                      	out sreg,temp1						; restore reg sreg form reg temp1
+0000c8 910f                      	pop temp1							; restore temp1 from stack
+0000c9 9518                      	reti
                                  
                                  text:
-0000bb 6954
-0000bc 656d
-0000bd 203a
+0000ca 6954
+0000cb 656d
+0000cc 203a
 
 
 RESOURCE USE INFORMATION
@@ -1062,37 +1089,37 @@ counted separately from r26..r31 here.
 "ATmega8" register use summary:
 x  :   0 y  :   0 z  :   1 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  65 r17:  22 r18:  14 r19:   4 r20:   0 
-r21:   4 r22:   5 r23:   5 r24:   5 r25:   0 r26:   0 r27:   0 r28:   0 
+r13:   0 r14:   0 r15:   0 r16:  67 r17:  22 r18:  14 r19:   4 r20:   0 
+r21:   4 r22:   5 r23:   5 r24:   5 r25:   3 r26:   5 r27:   0 r28:   0 
 r29:   0 r30:   1 r31:   1 
-Registers used: 11 out of 35 (31.4%)
+Registers used: 13 out of 35 (37.1%)
 
 "ATmega8" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :   2 adiw  :   0 and   :   0 
 andi  :   6 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   1 breq  :   2 brge  :   0 brhc  :   0 brhs  :   0 
-brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 brne  :   8 
+brcc  :   0 brcs  :   1 breq  :   3 brge  :   0 brhc  :   0 brhs  :   0 
+brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 brne  :  10 
 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 brvs  :   0 
 bset  :   0 bst   :   0 cbi   :   1 cbr   :   0 clc   :   0 clh   :   0 
 cli   :   0 cln   :   0 clr   :   9 cls   :   0 clt   :   0 clv   :   0 
-clz   :   0 com   :   0 cp    :   0 cpc   :   0 cpi   :   6 cpse  :   0 
-dec   :   4 eor   :   0 fmul  :   0 fmuls :   0 fmulsu:   0 icall :   0 
-ijmp  :   0 in    :   4 inc   :   5 ld    :   0 ldd   :   0 ldi   :  26 
+clz   :   0 com   :   0 cp    :   0 cpc   :   0 cpi   :   9 cpse  :   0 
+dec   :   5 eor   :   0 fmul  :   0 fmuls :   0 fmulsu:   0 icall :   0 
+ijmp  :   0 in    :   4 inc   :   6 ld    :   0 ldd   :   0 ldi   :  30 
 lds   :   0 lpm   :   1 lsl   :   0 lsr   :   0 mov   :   5 movw  :   0 
 mul   :   0 muls  :   0 mulsu :   0 neg   :   0 nop   :   3 or    :   4 
-ori   :   1 out   :  14 pop   :  11 push  :  11 rcall :  34 ret   :  10 
-reti  :   1 rjmp  :   5 rol   :   0 ror   :   0 sbc   :   0 sbci  :   0 
-sbi   :   1 sbic  :   0 sbis  :   0 sbiw  :   0 sbr   :   2 sbrc  :   0 
+ori   :   1 out   :  15 pop   :  11 push  :  11 rcall :  34 ret   :  10 
+reti  :   1 rjmp  :   6 rol   :   0 ror   :   0 sbc   :   0 sbci  :   0 
+sbi   :   1 sbic  :   1 sbis  :   0 sbiw  :   0 sbr   :   2 sbrc  :   0 
 sbrs  :   0 sec   :   0 seh   :   0 sei   :   1 sen   :   0 ser   :   0 
 ses   :   0 set   :   0 sev   :   0 sez   :   0 sleep :   0 spm   :   0 
 st    :   0 std   :   0 sts   :   0 sub   :   0 subi  :   2 swap  :   2 
 tst   :   0 wdr   :   0 
-Instructions used: 29 out of 110 (26.4%)
+Instructions used: 30 out of 110 (27.3%)
 
 "ATmega8" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x00017e    364      8    372    8192   4.5%
+[.cseg] 0x000000 0x00019c    394      8    402    8192   4.9%
 [.dseg] 0x000060 0x000060      0      0      0    1024   0.0%
 [.eseg] 0x000000 0x000000      0      0      0     512   0.0%
 
