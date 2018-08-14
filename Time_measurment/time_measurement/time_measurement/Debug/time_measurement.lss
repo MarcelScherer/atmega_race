@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Sun Aug 12 20:13:50 2018
+AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Tue Aug 14 11:31:03 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m8def.inc'
 C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm(28): Including file 'C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm'
@@ -754,7 +754,7 @@ C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\ti
                                  
                                  .equ STA_START     = 0
                                  .equ STA_ROUND_1   = 1
-                                 .equ DELAY_TIME    = 5
+                                 .equ DELAY_TIME    = 2
                                  
                                  .def temp1 = r16
                                  .def temp2 = r17
@@ -1005,7 +1005,7 @@ C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\ti
 000097 c004                      	rjmp loop_1							; jump to loop_1
 000098 30a0                      	cpi delay_timer,0					; compare delay timer with zero
 000099 f411                      	brne loop_1							; if not zero branch to loop_1 else ...
-00009a e0a5                      	ldi delay_timer,DELAY_TIME			; set timer to DELAY_TIME
+00009a e0a2                      	ldi delay_timer,DELAY_TIME			; set timer to DELAY_TIME
 00009b 9593                      	inc timer_state						; increment to next state
                                  loop_1:
 00009c 3030                      	cpi flag,0
@@ -1035,11 +1035,11 @@ C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\ti
                                  timer1_compare: 
 0000af 930f                      	push temp1							; store temp1 on stack
 0000b0 b70f                      	in temp1,sreg						; sotre SREG in reg temp1
-0000b1 9553                      	inc SubCount						; increment subCount
                                  
-0000b2 3091                      	cpi timer_state,STA_ROUND_1			; check if state is STA_ROUND_1
-0000b3 f499                      	brne end_isr						; if state is not STA_ROUND_1 jump to end_isr
+0000b1 3091                      	cpi timer_state,STA_ROUND_1			; check if state is STA_ROUND_1
+0000b2 f4a1                      	brne end_isr						; if state is not STA_ROUND_1 jump to end_isr
                                  
+0000b3 9553                      	inc SubCount						; increment subCount
 0000b4 305a                      	cpi SubCount, 10					; compare Subcount with 10
 0000b5 f489                      	brne end_isr						; if not equal 10 go to end_isr else ...
 0000b6 2755                      	clr SubCount						; reset Subcount

@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Sun Aug 12 20:13:50 2018
+AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Tue Aug 14 11:31:03 2018
 
 
 EQU  SIGNATURE_000 0000001e
@@ -509,7 +509,7 @@ EQU  SPMRaddr     00000012
 EQU  INT_VECTORS_SIZE 00000013
 EQU  STA_START    00000000
 EQU  STA_ROUND_1  00000001
-EQU  DELAY_TIME   00000005
+EQU  DELAY_TIME   00000002
 DEF  temp1        r16
 DEF  temp2        r17
 DEF  temp3        r18

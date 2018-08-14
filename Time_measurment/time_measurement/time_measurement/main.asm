@@ -7,7 +7,7 @@
 
 .equ STA_START     = 0
 .equ STA_ROUND_1   = 1
-.equ DELAY_TIME    = 5
+.equ DELAY_TIME    = 2
 
 .def temp1 = r16
 .def temp2 = r17
@@ -97,11 +97,11 @@ loop_1:
 timer1_compare: 
 	push temp1							; store temp1 on stack
 	in temp1,sreg						; sotre SREG in reg temp1
-	inc SubCount						; increment subCount
 
 	cpi timer_state,STA_ROUND_1			; check if state is STA_ROUND_1
 	brne end_isr						; if state is not STA_ROUND_1 jump to end_isr
 
+	inc SubCount						; increment subCount
 	cpi SubCount, 10					; compare Subcount with 10
 	brne end_isr						; if not equal 10 go to end_isr else ...
 	clr SubCount						; reset Subcount
