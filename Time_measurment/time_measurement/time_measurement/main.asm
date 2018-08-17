@@ -39,8 +39,8 @@ main:
 	rcall lcd_clear
 
 	; init in- and output pints
-	ldi temp1,0b00000000
-	out DDRB,temp1						; config all PBx -Pins as input
+	ldi temp1,0b00000010
+	out DDRB,temp1						; config PB1 as output and all other PBx -Pins as input
 
 	; init timer for 100 interrupts per second
 	ldi temp1, high( 40000 - 1 )
@@ -63,8 +63,12 @@ main:
 	sei
 
 loop:
-	sbic PINB, 0						; scip jmp loop_1 if bit 0 is GND
+	ldi temp1, 0b00000010				; set calibration led off
+	out PORTB, temp1
+	sbis PINB, 0						; scip jmp loop_1 if bit 1 is HIGH
 	rjmp loop_1							; jump to loop_1
+	ldi temp1, 0x00						; if light is on, set calibration led on
+	out PORTB, temp1
 	cpi delay_timer,0					; compare delay timer with zero
 	brne loop_1							; if not zero branch to loop_1 else ...
 	ldi delay_timer,DELAY_TIME			; set timer to DELAY_TIME
