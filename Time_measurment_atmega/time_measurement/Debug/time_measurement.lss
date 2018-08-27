@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Fri Aug 17 19:07:12 2018
+AVRASM ver. 2.2.7  C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm Sun Aug 19 19:14:48 2018
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.150\avrasm\inc\m8def.inc'
 C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\main.asm(28): Including file 'C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\time_measurement\lcd-routines.asm'
@@ -1001,11 +1001,11 @@ C:\Users\Marcel\Documents\GitHub\atmega_race\Time_measurment\time_measurement\ti
 000095 9478                      	sei
                                  
                                  loop:
-000096 e002                      	ldi temp1, 0b00000010
+000096 e002                      	ldi temp1, 0b00000010				; set calibration led off
 000097 bb08                      	out PORTB, temp1
 000098 9bb0                      	sbis PINB, 0						; scip jmp loop_1 if bit 1 is HIGH
 000099 c006                      	rjmp loop_1							; jump to loop_1
-00009a e000                      	ldi temp1, 0x00
+00009a e000                      	ldi temp1, 0x00						; if light is on, set calibration led on
 00009b bb08                      	out PORTB, temp1
 00009c 30a0                      	cpi delay_timer,0					; compare delay timer with zero
 00009d f411                      	brne loop_1							; if not zero branch to loop_1 else ...
