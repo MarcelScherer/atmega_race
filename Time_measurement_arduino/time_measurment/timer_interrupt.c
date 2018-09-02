@@ -25,7 +25,6 @@ void timer_init( void (*interrupt_func)(void))
   
   interrupt_routine = interrupt_func;
 
-  interrupts();             // enable all interrupts
 }
 
 ISR(TIMER1_COMPA_vect)		//Interrupt-Routine wird alle 5ms aufgerufen
