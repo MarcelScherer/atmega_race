@@ -56,7 +56,7 @@ void setup() {
   race_state = PRE_RACE_STATE;                      // init race_state als PRE_RACE_STATE
   disp_update_bit = TRUE;                           // init display_update as true
   pinMode(PIN_LIGHT, INPUT);                        // config pin off light-sensor as digital input
-  pinMode(PIN_RACE_MODE, INPUT);                    // config pin off race mode switch as digital input
+  pinMode(PIN_RACE_MODE, INPUT_PULLUP);             // config pin off race mode switch as digital input
   pinMode(PIN_LED_GREEN, OUTPUT);                   // config pin off led green as digital output 
   pinMode(PIN_LED_YELLOW, OUTPUT);                  // config pin off led yellow as digital output 
   pinMode(PIN_LED_RED, OUTPUT);                     // config pin off led red as digital output 
@@ -71,10 +71,10 @@ void setup() {
 void loop() {
   
   light_senosr    = digitalRead(PIN_LIGHT);         // read status of light sensor
+  diplay_time_var = digitalRead(PIN_RACE_MODE);     // read diplay timer variant
   if(diplay_time_var != digitalRead(PIN_RACE_MODE)){ // if display_timer_var changed
     disp_update_bit = TRUE;                         // set display update request
   }
-  diplay_time_var = digitalRead(PIN_RACE_MODE);     // read diplay timer variant
   calc_race_state(light_senosr);                    // calculate race state
   calc_info_led(race_state, light_senosr);          // activate info leds
   display_update();                                 // check display update
