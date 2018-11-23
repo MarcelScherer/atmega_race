@@ -1,4 +1,4 @@
-#  ! in progess !   atmega_race      ! in progess !
+# atmega_race
 
 <p align="center">
   <img src="https://github.com/MarcelScherer/atmega_race/blob/master/Time_measurement_arduino/doku/bild.jpg" width="700" title="Bild">
