@@ -65,15 +65,16 @@ void setup() {
   diplay_time_var = FALSE;                          // init display_timer_var as false
   light_senosr    = TRUE;                           // init light_sensor as true
   lcd.clear();                                      // clear lcd
+  Serial.begin(9600);                               // open the serial port at 9600 bps:
   interrupts();                                     // enable all interrupts
 }
 
 void loop() {
   
-  light_senosr    = digitalRead(PIN_LIGHT);         // read status of light sensor
-  diplay_time_var = digitalRead(PIN_RACE_MODE);     // read diplay timer variant
+  light_senosr    = !digitalRead(PIN_LIGHT);        // read status of light sensor
   if(diplay_time_var != digitalRead(PIN_RACE_MODE)){ // if display_timer_var changed
     disp_update_bit = TRUE;                         // set display update request
+    diplay_time_var = !diplay_time_var;
   }
   calc_race_state(light_senosr);                    // calculate race state
   calc_info_led(race_state, light_senosr);          // activate info leds
@@ -142,7 +143,7 @@ void calc_race_state(bool light_sensor){
  * calculate info led
  */
 void calc_info_led(enum e_race_state race_state, bool light_senosr){
-  digitalWrite(PIN_LED_BLUE, !light_senosr);
+  digitalWrite(PIN_LED_BLUE, light_senosr);
 
   if(race_state == PRE_RACE_STATE){                                     // if RPE_RACE_STATE is active
     digitalWrite(PIN_LED_GREEN,  TRUE);                                 // activate only green led
@@ -220,11 +221,43 @@ void print_char_array(char char_array[], uint8_t array_lenght)
  * function check if time is fastest
  */
 void check_fast_time(uint8_t actual_time[], uint8_t fastest_time[]){
-  if(    actual_time[minutes] <= fastest_time[minutes] 
-      && actual_time[seconds] <= fastest_time[seconds] 
-      && actual_time[milsec]  <  fastest_time[milsec] ){
-    memcpy(fastest_time[0], fastest_time[0], 3);  
+  bool is_faster = false;
+  
+  if(    actual_time[minutes] < fastest_time[minutes])
+  {
+    is_faster = true;
+  }
+  else if(actual_time[minutes] == fastest_time[minutes])
+  {
+    if(actual_time[seconds] < fastest_time[seconds])
+    {
+      is_faster = true;
+    }
+    else if(actual_time[seconds] == fastest_time[seconds])
+    {
+      if(actual_time[milsec]  <  fastest_time[milsec])
+      {
+        is_faster = true;
+      }
+      else
+      {
+         is_faster = false;
+      }
+    }
+    else
+    {
+      is_faster = false;
+    }
+  }
+  else
+  {
+    is_faster = false;
+  }
+
+  Serial.println(is_faster);
+  if(is_faster)
+  {
+    memcpy(fastest_time, actual_time, 3);  
     calculate_time_string(&fastest_time_string[0], &actual_time[0]);     // update fastest time string
   }
 }
-
